@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart City Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #2c3e50, #3498db);
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 1rem;
+      background-color: rgba(0, 0, 0, 0.4);
+      font-size: 2rem;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 2rem;
+    }
+    .card {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .title {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: #ffecb3;
+    }
+    .value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .status {
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    🌆 Smart City Dashboard
+  </header>
+
+  <div class="dashboard">
+    <div class="card">
+      <div class="title">🚦 Traffic Flow</div>
+      <div class="value" id="traffic">Loading...</div>
+      <div class="status" id="trafficStatus"></div>
+    </div>
+
+    <div class="card">
+      <div class="title">🗑️ Waste Bin Fill Level</div>
+      <div class="value" id="waste">Loading...</div>
+      <div class="status" id="wasteStatus"></div>
+    </div>
+
+    <div class="card">
+      <div class="title">☀️ Solar Power Generated</div>
+      <div class="value" id="energy">Loading...</div>
+      <div class="status">Last 24 hours</div>
+    </div>
+
+    <div class="card">
+      <div class="title">🏛️ Public Services Online</div>
+      <div class="value">✔️ Active</div>
+      <div class="status">Chatbots & E-Governance Available</div>
+    </div>
+
+    <div class="card">
+      <div class="title">📡 IoT Sensors Active</div>
+      <div class="value" id="iotSensors">Loading...</div>
+      <div class="status">Monitoring Infrastructure</div>
+    </div>
+  </div>
+
+  <script>
+    function updateDashboard() {
+      const traffic = Math.floor(Math.random() * 100);
+      const waste = Math.floor(Math.random() * 100);
+      const energy = (Math.random() * 50 + 50).toFixed(2); // 50–100 kWh
+      const sensors = Math.floor(Math.random() * 1000 + 500); // 500–1500
+
+      document.getElementById('traffic').textContent = traffic + '%';
+      document.getElementById('waste').textContent = waste + '%';
+      document.getElementById('energy').textContent = energy + ' kWh';
+      document.getElementById('iotSensors').textContent = sensors;
+
+      document.getElementById('trafficStatus').textContent =
+        traffic > 70 ? '⚠️ Heavy traffic – optimizing signals' : '✅ Smooth traffic flow';
+
+      document.getElementById('wasteStatus').textContent =
+        waste > 80 ? '⚠️ Bin needs pickup' : '🟢 Optimal level';
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 5000); // Refresh every 5 seconds
+  </script>
+
+</body>
+</html>
