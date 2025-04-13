@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AMU Non-Native Plants Collection</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #2c3e50, #3498db);
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 1.5rem;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    .header-title {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .header-subtitle {
+      font-size: 1.2rem;
+      color: #ffecb3;
+    }
+    .back-link {
+      position: absolute;
+      top: 1.5rem;
+      left: 1.5rem;
+      color: white;
+      text-decoration: none;
+      font-size: 1.1rem;
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      transition: all 0.3s ease;
+    }
+    .back-link:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+      transform: translateX(-5px);
+    }
+    .intro-section {
+      background-color: rgba(255, 255, 255, 0.1);
+      margin: 2rem;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      line-height: 1.6;
+    }
+    .intro-title {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #ffecb3;
+      text-align: center;
+    }
+    .plant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+      padding: 2rem;
+    }
+    .plant-card {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .plant-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+    .plant-model-container {
+      width: 100%;
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+      background-position: center;
+      background-size: cover;
+      transition: all 0.5s ease;
+    }
+    .plant-model-container:hover .plant-svg {
+      transform: scale(1.1) translateY(-5px);
+    }
+    .plant-model-container:hover .leaves {
+      animation: sway 2s infinite alternate ease-in-out;
+    }
+    .plant-model-container svg {
+      width: 100%;
+      height: 100%;
+    }
+    .plant-svg {
+      transition: transform 0.5s ease;
+    }
+    @keyframes sway {
+      0% {
+        transform: rotate(-5deg);
+      }
+      100% {
+        transform: rotate(5deg);
+      }
+    }
+    .view-instructions {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .plant-info {
+      padding: 1.5rem;
+    }
+    .plant-name {
+      font-size: 1.4rem;
+      color: #ffecb3;
+      margin-bottom: 0.5rem;
+    }
+    .plant-scientific {
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 1rem;
+    }
+    .plant-details {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .plant-label {
+      font-weight: bold;
+      color: #ffecb3;
+    }
+    .plant-value {
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .plant-description {
+      line-height: 1.6;
+      margin-top: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .map-section {
+      background-color: rgba(255, 255, 255, 0.1);
+      margin: 2rem;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    .map-title {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #ffecb3;
+      text-align: center;
+    }
+    #plant-map {
+      width: 100%;
+      height: 400px;
+      border-radius: 10px;
+      margin-top: 1.5rem;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background-color: rgba(0, 0, 0, 0.4);
+      margin-top: 2rem;
+    }
+    footer a {
+      color: #ffecb3;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      .plant-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+      }
+      .intro-section, .map-section {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+      #plant-map {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="header-title">🌿 AMU Non-Native Plants Collection</div>
+    <div class="header-subtitle">Botanical Heritage of Aligarh Muslim University</div>
+  </header>
+
+  <div class="intro-section">
+    <div class="intro-title">Botanical Diversity at AMU</div>
+    <p>Aligarh Muslim University's sprawling 467.6-hectare campus hosts an exceptional collection of non-native plant species that have been introduced over the decades since its founding. These plants, sourced from different continents around the world, create a living botanical museum that enhances the educational experience while providing a serene environment for learning and research.</p>
+    <p>The university's commitment to botanical diversity began during the colonial era and continues to this day, with ongoing conservation efforts and new additions to the campus flora. These non-indigenous plants have adapted remarkably well to Aligarh's climate, creating microhabitats that support local biodiversity.</p>
+    <p>Explore our collection of exotic trees and plants below, each with its own unique story of introduction to AMU's historic campus. <strong>Hover over the plant illustrations to see them animate!</strong></p>
+  </div>
+
+  <div class="plant-grid">
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-african-tulip">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <rect x="45" y="60" width="10" height="40" fill="#8B4513" />
+          <g class="leaves" transform-origin="50 40">
+            <ellipse cx="50" cy="40" rx="25" ry="30" fill="#4CAF50" />
+            <ellipse cx="50" cy="25" rx="10" ry="15" fill="#FF5722" />
+            <ellipse cx="35" cy="30" rx="8" ry="10" fill="#FF5722" />
+            <ellipse cx="65" cy="30" rx="8" ry="10" fill="#FF5722" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">African Tulip Tree</h3>
+        <div class="plant-scientific">Spathodea campanulata</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Tropical Africa</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">1930s</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Bignoniaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">15-25 meters</div>
+        </div>
+        <div class="plant-description">
+          Known for its bright orange-red tulip-shaped flowers, these magnificent trees line several pathways on AMU campus. They bloom most prominently during spring, creating a vibrant display against the historic architecture. The trees were introduced as part of a campus beautification initiative and have since become iconic features of AMU's landscape.
+        </div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-silver-oak">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <rect x="45" y="60" width="10" height="40" fill="#A9A9A9" />
+          <g class="leaves" transform-origin="50 40">
+            <path d="M50,10 L25,50 L75,50 Z" fill="#B0C4DE" />
+            <path d="M50,20 L20,60 L80,60 Z" fill="#B0C4DE" />
+            <path d="M50,30 L15,70 L85,70 Z" fill="#B0C4DE" />
+            <ellipse cx="50" cy="50" rx="5" ry="5" fill="#FFD700" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">Silver Oak</h3>
+        <div class="plant-scientific">Grevillea robusta</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Australia</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">Colonial period (1890s)</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Proteaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">18-35 meters</div>
+        </div>
+        <div class="plant-description">
+          Distinguished by its silver-gray foliage and golden yellow flowers, the Silver Oak was planted extensively near AMU's administrative buildings during the British colonial period. These majestic trees serve as windbreaks and provide shade throughout the campus. Their drought resistance made them particularly suitable for Aligarh's climate.
+        </div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-eucalyptus">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <rect x="45" y="60" width="10" height="40" fill="#8B4513" />
+          <g class="leaves" transform-origin="50 30">
+            <ellipse cx="50" cy="30" rx="15" ry="30" fill="#90EE90" />
+            <ellipse cx="40" cy="35" rx="10" ry="20" fill="#90EE90" />
+            <ellipse cx="60" cy="35" rx="10" ry="20" fill="#90EE90" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">Eucalyptus</h3>
+        <div class="plant-scientific">Eucalyptus globulus</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Australia</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">1950s</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Myrtaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">30-55 meters</div>
+        </div>
+        <div class="plant-description">
+          These fast-growing trees were planted during major landscaping initiatives in the 1950s. Located primarily near the university's newer departments and sports complex, they provide quick shade and are known for their aromatic properties. Their introduction was part of a national afforestation program, and they have thrived in AMU's environment.
+        </div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-bottle-palm">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <path d="M45,100 Q40,80 45,70 Q50,60 55,70 Q60,80 55,100 Z" fill="#8B4513" />
+          <g class="leaves" transform-origin="50 40">
+            <path d="M30,40 L50,10 L70,40" stroke="#228B22" stroke-width="2" fill="none" />
+            <path d="M25,45 L50,15 L75,45" stroke="#228B22" stroke-width="2" fill="none" />
+            <path d="M20,50 L50,20 L80,50" stroke="#228B22" stroke-width="2" fill="none" />
+            <path d="M30,40 L50,70 L70,40" stroke="#228B22" stroke-width="2" fill="none" />
+            <path d="M25,45 L50,75 L75,45" stroke="#228B22" stroke-width="2" fill="none" />
+            <path d="M20,50 L50,80 L80,50" stroke="#228B22" stroke-width="2" fill="none" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">Bottle Palm</h3>
+        <div class="plant-scientific">Hyophorbe lagenicaulis</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Mascarene Islands</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">1970s</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Arecaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">5-7 meters</div>
+        </div>
+        <div class="plant-description">
+          Distinctive for its bottle-shaped trunk, these ornamental palms are prominently featured near the university's guest house and administrative buildings. They were introduced during a period of landscape diversification in the 1970s and have become popular architectural accents. The unique shape makes them instantly recognizable among AMU's plant collection.
+        </div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-gulmohar">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <rect x="45" y="60" width="10" height="40" fill="#8B4513" />
+          <g class="leaves" transform-origin="50 40">
+            <ellipse cx="50" cy="40" rx="30" ry="25" fill="#4CAF50" />
+            <ellipse cx="40" cy="35" rx="5" ry="5" fill="#FF0000" />
+            <ellipse cx="60" cy="35" rx="5" ry="5" fill="#FF0000" />
+            <ellipse cx="50" cy="25" rx="5" ry="5" fill="#FF0000" />
+            <ellipse cx="30" cy="45" rx="5" ry="5" fill="#FF0000" />
+            <ellipse cx="70" cy="45" rx="5" ry="5" fill="#FF0000" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">Gulmohar</h3>
+        <div class="plant-scientific">Delonix regia</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Madagascar</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">British colonial era</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Fabaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">9-12 meters</div>
+        </div>
+        <div class="plant-description">
+          Known for its vibrant red flowers that bloom in summer, these trees create a spectacular display along Sir Syed House and the main university roads. Also called the Flamboyant or Royal Poinciana, Gulmohar trees were introduced by British officials who admired their ornamental value. They flower profusely during the hot months, providing a stunning canopy of color.
+        </div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-australian-pine">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <rect x="45" y="60" width="10" height="40" fill="#8B4513" />
+          <g class="leaves" transform-origin="50 30">
+            <path d="M50,10 L40,30 L60,30 Z" fill="#006400" />
+            <path d="M50,20 L35,40 L65,40 Z" fill="#006400" />
+            <path d="M50,30 L30,50 L70,50 Z" fill="#006400" />
+            <path d="M50,40 L25,60 L75,60 Z" fill="#006400" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">Australian Pine</h3>
+        <div class="plant-scientific">Casuarina equisetifolia</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Australia and Southeast Asia</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">1920s</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Casuarinaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">20-30 meters</div>
+        </div>
+        <div class="plant-description">
+          These tall, conical trees were planted as windbreaks and can be found around the university perimeter and botanical gardens. Despite their name, they're not true pines but have needle-like branchlets that resemble pine needles. They were introduced for their quick growth and ability to thrive in sandy, saline soils, helping to stabilize the campus grounds.
+        </div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-japanese-cherry">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <rect x="45" y="60" width="10" height="40" fill="#8B4513" />
+          <g class="leaves" transform-origin="50 40">
+            <ellipse cx="50" cy="40" rx="25" ry="20" fill="#4CAF50" />
+            <ellipse cx="40" cy="35" rx="4" ry="4" fill="#FFC0CB" />
+            <ellipse cx="60" cy="35" rx="4" ry="4" fill="#FFC0CB" />
+            <ellipse cx="45" cy="25" rx="4" ry="4" fill="#FFC0CB" />
+            <ellipse cx="55" cy="25" rx="4" ry="4" fill="#FFC0CB" />
+            <ellipse cx="35" cy="45" rx="4" ry="4" fill="#FFC0CB" />
+            <ellipse cx="65" cy="45" rx="4" ry="4" fill="#FFC0CB" />
+            <ellipse cx="50" cy="50" rx="4" ry="4" fill="#FFC0CB" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">Japanese Cherry</h3>
+        <div class="plant-scientific">Prunus serrulata</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Japan</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">1980s</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Rosaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">6-10 meters</div>
+        </div>
+        <div class="plant-description">
+          Added during botanical expansion efforts in the 1980s, these ornamental trees with pink blossoms are located near Kennedy House and the university library. Their spring flowering creates a unique aesthetic reminiscent of Japanese gardens. The trees were a gift from a Japanese academic delegation and represent international cooperation in botanical exchange.
+        </div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-model-container" id="model-chinese-fan-palm">
+        <div class="view-instructions">Hover to animate</div>
+        <svg viewBox="0 0 100 100" class="plant-svg">
+          <rect x="45" y="50" width="10" height="50" fill="#8B4513" />
+          <g class="leaves" transform-origin="50 30">
+            <path d="M50,30 L20,50 L80,50 Z" fill="#228B22" />
+            <path d="M50,25 L25,45 L75,45 Z" fill="#228B22" />
+            <path d="M50,20 L30,40 L70,40 Z" fill="#228B22" />
+            <path d="M50,15 L35,35 L65,35 Z" fill="#228B22" />
+            <path d="M50,10 L40,30 L60,30 Z" fill="#228B22" />
+          </g>
+        </svg>
+      </div>
+      <div class="plant-info">
+        <h3 class="plant-name">Chinese Fan Palm</h3>
+        <div class="plant-scientific">Livistona chinensis</div>
+        <div class="plant-details">
+          <div class="plant-label">Origin:</div>
+          <div class="plant-value">Southern China and Japan</div>
+          <div class="plant-label">Introduced:</div>
+          <div class="plant-value">1960s</div>
+          <div class="plant-label">Family:</div>
+          <div class="plant-value">Arecaceae</div>
+          <div class="plant-label">Height:</div>
+          <div class="plant-value">9-15 meters</div>
+        </div>
+        <div class="plant-description">
+          Featured prominently around residence halls and administrative offices, these elegant palms are known for their fan-shaped leaves and decorative value. They were introduced during a campus beautification program and have adapted well to Aligarh's climate. The symmetrical growth pattern makes them particularly suitable for formal garden arrangements.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-section">
+    <div class="map-title">🗺️ Plant Location Map</div>
+    <p style="text-align: center;">Explore the distribution of non-native plant species across AMU campus</p>
+    <div id="plant-map"></div>
+  </div>
+
+  <footer>
+    <p>Part of the Smart City Dashboard Project | &copy; 2025 AMU Botanical Heritage</p>
+    <p><a href="index.html">Return to Dashboard</a></p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    // Plant data with locations
+    const plantModels = [
+      {
+        id: 'model-african-tulip',
+        name: 'African Tulip Tree',
+        scientific: 'Spathodea campanulata',
+        location: [27.9120, 78.0780]
+      },
+      {
+        id: 'model-silver-oak',
+        name: 'Silver Oak',
+        scientific: 'Grevillea robusta',
+        location: [27.9115, 78.0785]
+      },
+      {
+        id: 'model-eucalyptus',
+        name: 'Eucalyptus',
+        scientific: 'Eucalyptus globulus',
+        location: [27.9125, 78.0770]
+      },
+      {
+        id: 'model-bottle-palm',
+        name: 'Bottle Palm',
+        scientific: 'Hyophorbe lagenicaulis',
+        location: [27.9118, 78.0775]
+      },
+      {
+        id: 'model-gulmohar',
+        name: 'Gulmohar',
+        scientific: 'Delonix regia',
+        location: [27.9122, 78.0778]
+      },
+      {
+        id: 'model-australian-pine',
+        name: 'Australian Pine',
+        scientific: 'Casuarina equisetifolia',
+        location: [27.9110, 78.0765]
+      },
+      {
+        id: 'model-japanese-cherry',
+        name: 'Japanese Cherry',
+        scientific: 'Prunus serrulata',
+        location: [27.9128, 78.0773]
+      },
+      {
+        id: 'model-chinese-fan-palm',
+        name: 'Chinese Fan Palm',
+        scientific: 'Livistona chinensis',
+        location: [27.9115, 78.0768]
+      }
+    ];
+
+    // Initialize map when the page loads
+    window.addEventListener('load', function() {
+      initializeMap();
+    });
+    
+    // Function to initialize the map
+    function initializeMap() {
+      // Initialize the Leaflet map
+      const map = L.map('plant-map').setView([27.9120, 78.0775], 15); // Aligarh coordinates
+      
+      // Add OpenStreetMap tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      // Add markers for each plant
+      plantModels.forEach(plant => {
+        if (plant.location) {
+          const marker = L.marker(plant.location).addTo(map);
+          marker.bindPopup(`<b>${plant.name}</b><br><i>${plant.scientific}</i>`);
+        }
+      });
+      
+      // Define a polygon to show the AMU campus area
+      const campusPolygon = L.polygon([
+        [27.9140, 78.0790],
+        [27.9140, 78.0760],
+        [27.9100, 78.0760],
+        [27.9100, 78.0790]
+      ], {
+        color: 'green',
+        fillColor: '#4CAF50',
+        fillOpacity: 0.3
+      }).addTo(map);
+      
+      campusPolygon.bindPopup("AMU Campus - Home to diverse non-native plant species");
+    }
+  </script>
+</body>
+</html>
